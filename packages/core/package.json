@@ -1,0 +1,16 @@
+{
+  "name": "@moodle-next/core",
+  "version": "0.1.0",
+  "description": "Domain model for the moodle-next platform",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}
