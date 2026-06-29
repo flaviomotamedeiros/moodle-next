@@ -1,0 +1,14 @@
+{
+  "name": "@moodle-next/plugin-sdk",
+  "version": "0.1.0",
+  "description": "Plugin contracts for the moodle-next platform",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
