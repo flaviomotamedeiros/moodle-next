@@ -35,7 +35,7 @@ export class MeController {
 
   /**
    * Self-enroll the current user into a course as a student.
-   * Stage 2 write: persisted in the NEW database via the Strangler repository.
+   * Persisted in the new database.
    */
   @Post('courses/:courseId/enroll')
   @HttpCode(HttpStatus.CREATED)

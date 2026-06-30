@@ -8,15 +8,12 @@ import { GradingModule } from './modules/grading/grading.module.js'
 import { EventBusModule } from './infrastructure/event-bus/event-bus.module.js'
 import { PluginRegistryModule } from './infrastructure/plugin-registry/plugin-registry.module.js'
 import { DatabaseModule } from './infrastructure/database/database.module.js'
-import { LegacyModule } from './infrastructure/legacy/legacy.module.js'
-import { MigrationModule } from './modules/migration/migration.module.js'
 import { MeModule } from './modules/me/me.module.js'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
-    LegacyModule,
     EventBusModule,
     PluginRegistryModule,
     AuthModule,
@@ -24,7 +21,6 @@ import { MeModule } from './modules/me/me.module.js'
     EnrollmentModule,
     ActivityModule,
     GradingModule,
-    MigrationModule,
     MeModule,
   ],
 })

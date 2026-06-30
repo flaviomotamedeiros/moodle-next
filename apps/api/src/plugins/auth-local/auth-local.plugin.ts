@@ -3,15 +3,12 @@ import type { AuthPlugin, AuthResult, Credentials, Migration } from '@moodle-nex
 import type { UserRepository } from '@moodle-next/core'
 
 /**
- * Local AuthPlugin — validates credentials against the user repository.
- *
- * Stage 3: the repository is the StranglerUserRepository, so when
- * MIGRATED_IDENTITY=true this reads from the new database and the legacy
- * MariaDB is no longer touched at login.
+ * Local AuthPlugin — validates credentials against the user repository
+ * (the new database, post-migration).
  *
  * NOTE (prototype simplification): passwords are not verified against Moodle's
  * mixed hash schemes; we accept the known seed password. The user must exist in
- * the (now migrated) user store.
+ * the (migrated) user store.
  */
 @Injectable()
 export class AuthLocalPlugin implements AuthPlugin {
