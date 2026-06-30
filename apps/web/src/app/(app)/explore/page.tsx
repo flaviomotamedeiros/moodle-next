@@ -114,7 +114,7 @@ export default function ExplorePage() {
         {courses.map(course => {
           const enrolled = enrolledIds.has(course.id)
           return (
-            <Card key={course.id} className="flex flex-col overflow-hidden">
+            <Card key={course.id} data-testid="course-tile" className="flex flex-col overflow-hidden">
               <div className="relative h-16 w-full overflow-hidden border-b border-border bg-accent">
                 <span className="absolute -right-1 -top-1.5 select-none text-6xl font-bold leading-none text-primary/10">
                   {course.shortName.slice(0, 3)}

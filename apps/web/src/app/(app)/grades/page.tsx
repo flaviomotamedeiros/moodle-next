@@ -52,10 +52,6 @@ export default function GradesPage() {
     return () => { active = false }
   }, [])
 
-  if (loading) return <LoadingState label="Carregando notas…" />
-  if (error) return <ErrorState message={error} />
-  if (!data || data.length === 0) return <EmptyState message="Nenhuma nota lançada ainda." />
-
   return (
     <div className="space-y-6">
       <header>
@@ -63,6 +59,13 @@ export default function GradesPage() {
         <p className="mt-1 text-muted-foreground">Seu desempenho por curso, direto do Moodle.</p>
       </header>
 
+      {loading ? (
+        <LoadingState label="Carregando notas…" />
+      ) : error ? (
+        <ErrorState message={error} />
+      ) : !data || data.length === 0 ? (
+        <EmptyState message="Nenhuma nota lançada ainda." />
+      ) : (
       <div className="space-y-5">
         {data.map(({ course, book }) => (
           <Card key={course.id}>
@@ -102,6 +105,7 @@ export default function GradesPage() {
           </Card>
         ))}
       </div>
+      )}
     </div>
   )
 }
