@@ -17,6 +17,6 @@ import { StranglerEnrollmentRepository } from '../../infrastructure/legacy/stran
     StranglerEnrollmentRepository,
     { provide: 'ENROLLMENT_REPOSITORY', useExisting: StranglerEnrollmentRepository },
   ],
-  exports: [EnrollmentService],
+  exports: [EnrollmentService, 'ENROLLMENT_REPOSITORY'],
 })
 export class EnrollmentModule {}

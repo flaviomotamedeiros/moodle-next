@@ -17,6 +17,7 @@ export class UserDeleted extends BaseDomainEvent {
 }
 
 export interface UserProps {
+  username: string
   email: string
   firstName: string
   lastName: string
@@ -42,6 +43,7 @@ export class User extends AggregateRoot {
     return new User(id, props)
   }
 
+  get username(): string { return this.props.username }
   get email(): string { return this.props.email }
   get firstName(): string { return this.props.firstName }
   get lastName(): string { return this.props.lastName }

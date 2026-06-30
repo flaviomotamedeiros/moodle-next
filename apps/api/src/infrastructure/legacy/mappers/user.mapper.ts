@@ -15,6 +15,7 @@ export interface MdlUser {
 export class UserMapper {
   static toDomain(row: MdlUser): User {
     return User.reconstitute(String(row.id), {
+      username: row.username,
       email: row.email,
       firstName: row.firstname,
       lastName: row.lastname,

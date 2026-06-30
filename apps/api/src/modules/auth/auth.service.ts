@@ -1,9 +1,8 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
+import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import type { UserRepository, EnrollmentRepository } from '@moodle-next/core'
 import { PluginRegistryService } from '../../infrastructure/plugin-registry/plugin-registry.service.js'
 import { EventBusService } from '../../infrastructure/event-bus/event-bus.service.js'
-import { LegacyUserRepository } from '../../infrastructure/legacy/repositories/legacy-user.repository.js'
-import { LegacyDbService } from '../../infrastructure/legacy/legacy-db.service.js'
 import { LoginFailed, LoginSucceeded } from '@moodle-next/core'
 import type { LoginDto } from './dto/login.dto.js'
 
@@ -33,18 +32,15 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly plugins: PluginRegistryService,
     private readonly eventBus: EventBusService,
-    private readonly users: LegacyUserRepository,
-    private readonly db: LegacyDbService,
+    @Inject('USER_REPOSITORY') private readonly users: UserRepository,
+    @Inject('ENROLLMENT_REPOSITORY') private readonly enrollments: EnrollmentRepository,
   ) {}
 
   async login(dto: LoginDto): Promise<LoginResponse> {
     const authPlugins = this.plugins.listAuthPlugins()
 
     for (const plugin of authPlugins) {
-      const result = await plugin.authenticate({
-        username: dto.username,
-        password: dto.password,
-      })
+      const result = await plugin.authenticate({ username: dto.username, password: dto.password })
 
       if (result) {
         const userId = result.user.id
@@ -53,7 +49,6 @@ export class AuthService {
         const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' })
 
         await this.eventBus.dispatch([new LoginSucceeded(userId, `session-${Date.now()}`)])
-
         return { accessToken, refreshToken, user: await this.buildUserDto(userId, dto.username) }
       }
     }
@@ -64,7 +59,7 @@ export class AuthService {
     throw new UnauthorizedException('Invalid credentials')
   }
 
-  /** Builds the authenticated user's profile from the legacy database. */
+  /** Builds the authenticated user's profile from the platform stores (no legacy SQL). */
   private async buildUserDto(userId: string, username: string): Promise<AuthUserDto> {
     const user = await this.users.findById(userId)
     const name = user?.fullName ?? username
@@ -73,14 +68,8 @@ export class AuthService {
     if (username === 'admin') {
       role = 'admin'
     } else {
-      const rows = await this.db.query<{ c: number }>(
-        `SELECT COUNT(*) AS c
-         FROM mdl_role_assignments ra
-         JOIN mdl_role r ON r.id = ra.roleid
-         WHERE ra.userid = ? AND r.shortname IN ('teacher', 'editingteacher')`,
-        [userId],
-      )
-      if (Number(rows[0]?.c ?? 0) > 0) role = 'teacher'
+      const enrolls = await this.enrollments.findByUser(userId)
+      if (enrolls.some(e => e.role === 'teacher')) role = 'teacher'
     }
 
     return { id: userId, username, name, role }

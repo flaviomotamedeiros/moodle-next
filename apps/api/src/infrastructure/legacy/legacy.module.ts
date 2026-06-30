@@ -6,6 +6,10 @@ import { LegacyCourseRepository } from './repositories/legacy-course.repository.
 import { LegacyEnrollmentRepository } from './repositories/legacy-enrollment.repository.js'
 import { LegacyGradeRepository } from './repositories/legacy-grade.repository.js'
 import { LegacyActivityRepository } from './repositories/legacy-activity.repository.js'
+import { PrismaUserRepository } from '../database/prisma-user.repository.js'
+import { StranglerUserRepository } from './strangler-user.repository.js'
+
+const USER_REPOSITORY = { provide: 'USER_REPOSITORY', useExisting: StranglerUserRepository }
 
 @Global()
 @Module({
@@ -17,6 +21,9 @@ import { LegacyActivityRepository } from './repositories/legacy-activity.reposit
     LegacyEnrollmentRepository,
     LegacyGradeRepository,
     LegacyActivityRepository,
+    PrismaUserRepository,
+    StranglerUserRepository,
+    USER_REPOSITORY,
   ],
   exports: [
     LegacyDbService,
@@ -26,6 +33,8 @@ import { LegacyActivityRepository } from './repositories/legacy-activity.reposit
     LegacyEnrollmentRepository,
     LegacyGradeRepository,
     LegacyActivityRepository,
+    StranglerUserRepository,
+    USER_REPOSITORY,
   ],
 })
 export class LegacyModule {}

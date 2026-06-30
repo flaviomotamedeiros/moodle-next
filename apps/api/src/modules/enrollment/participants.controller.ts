@@ -1,7 +1,7 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common'
+import { Controller, Get, Param, UseGuards, Inject } from '@nestjs/common'
+import type { UserRepository } from '@moodle-next/core'
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard.js'
 import { EnrollmentService } from './enrollment.service.js'
-import { LegacyUserRepository } from '../../infrastructure/legacy/repositories/legacy-user.repository.js'
 
 /** Course participants with their display names — for the teacher grading screen. */
 @Controller('courses/:courseId/participants')
@@ -9,7 +9,7 @@ import { LegacyUserRepository } from '../../infrastructure/legacy/repositories/l
 export class ParticipantsController {
   constructor(
     private readonly enrollments: EnrollmentService,
-    private readonly users: LegacyUserRepository,
+    @Inject('USER_REPOSITORY') private readonly users: UserRepository,
   ) {}
 
   @Get()

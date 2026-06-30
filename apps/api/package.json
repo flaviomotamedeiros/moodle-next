@@ -6,6 +6,7 @@
     "build": "nest build",
     "dev": "nest start --watch",
     "start": "node dist/main",
+    "migrate:legacy": "node dist/migrate-legacy.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

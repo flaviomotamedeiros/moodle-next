@@ -24,6 +24,18 @@ model Enrollment {
   @@map("enrollments")
 }
 
+/// Users migrated/created in the NEW system.
+model User {
+  id        String    @id
+  username  String    @unique
+  email     String
+  firstName String
+  lastName  String
+  deletedAt DateTime?
+
+  @@map("users")
+}
+
 /// Courses created by the NEW system. Merged with legacy at read time.
 model Course {
   id         String  @id

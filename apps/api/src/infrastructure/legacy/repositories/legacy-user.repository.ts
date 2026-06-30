@@ -23,6 +23,14 @@ export class LegacyUserRepository implements UserRepository {
     return rows[0] ? UserMapper.toDomain(rows[0]) : null
   }
 
+  async findByUsername(username: string): Promise<User | null> {
+    const rows = await this.db.query<MdlUser>(
+      'SELECT id, username, firstname, lastname, email, deleted, suspended, timecreated FROM mdl_user WHERE username = ? AND deleted = 0',
+      [username],
+    )
+    return rows[0] ? UserMapper.toDomain(rows[0]) : null
+  }
+
   async save(_user: User): Promise<void> {
     // Read-only ACL: writes go to the new database, not the legacy one.
     throw new Error('LegacyUserRepository is read-only. Route writes to the new repository.')
