@@ -4,6 +4,8 @@ import {
   Submission,
   Completion,
   type ActivityRepository,
+  type SubmissionRepository,
+  type CompletionRepository,
 } from '@moodle-next/core'
 import { PluginRegistryService } from '../../infrastructure/plugin-registry/plugin-registry.service.js'
 import { EventBusService } from '../../infrastructure/event-bus/event-bus.service.js'
@@ -14,6 +16,8 @@ import type { CreateSubmissionDto } from './dto/create-submission.dto.js'
 export class ActivityService {
   constructor(
     @Inject('ACTIVITY_REPOSITORY') private readonly activities: ActivityRepository,
+    @Inject('SUBMISSION_REPOSITORY') private readonly submissions: SubmissionRepository,
+    @Inject('COMPLETION_REPOSITORY') private readonly completions: CompletionRepository,
     private readonly plugins: PluginRegistryService,
     private readonly eventBus: EventBusService,
   ) {}
@@ -28,54 +32,57 @@ export class ActivityService {
     return this.activities.findByCourse(courseId)
   }
 
+  /** Current user's submission for an activity (or null). */
+  async getSubmission(activityId: string, enrollmentId: string): Promise<Submission | null> {
+    return this.submissions.findByActivityAndEnrollment(activityId, enrollmentId)
+  }
+
+  /**
+   * Student submits (or edits) their response. The Submission is persisted in the
+   * NEW database, decoupled from the legacy-authored Activity definition.
+   */
   async submit(activityId: string, dto: CreateSubmissionDto): Promise<Submission> {
     const activity = await this.findById(activityId)
 
-    const submission = Submission.create(crypto.randomUUID(), {
+    const existing = await this.submissions.findByActivityAndEnrollment(activityId, dto.enrollmentId)
+    const id = existing?.id ?? crypto.randomUUID()
+    const attemptNumber = existing ? existing.attemptNumber + 1 : 1
+
+    const submission = Submission.create(id, {
       activityId,
       enrollmentId: dto.enrollmentId,
-      attemptNumber: activity.submissions.filter(
-        s => s.enrollmentId === dto.enrollmentId,
-      ).length + 1,
+      attemptNumber,
       content: dto.content,
     })
 
-    const submitResult = submission.submit()
-    if (!submitResult.ok) {
-      throw new DomainException(submitResult.error, submitResult.error)
-    }
+    const result = submission.submit()
+    if (!result.ok) throw new DomainException(result.error, result.error)
 
-    activity.addSubmission(submission)
-    await this.activities.save(activity)
-    await this.checkCompletion(activity, dto.enrollmentId)
+    await this.submissions.save(submission)
+    await this.eventBus.dispatch(submission.pullEvents())
 
+    await this.evaluateCompletion(activity, dto.enrollmentId)
     return submission
   }
 
-  private async checkCompletion(activity: Activity, enrollmentId: string): Promise<void> {
+  /** Re-evaluates completion via the activity's plugin (if any). */
+  private async evaluateCompletion(activity: Activity, enrollmentId: string): Promise<void> {
     const plugin = this.plugins.getActivity(activity.pluginId)
     if (!plugin) return
 
-    const isComplete = await plugin.checkCompletion({
-      activityId: activity.id,
-      enrollmentId,
-    })
+    const isComplete = await plugin.checkCompletion({ activityId: activity.id, enrollmentId })
+    if (!isComplete) return
 
-    if (isComplete) {
-      const completion = Completion.create(crypto.randomUUID(), {
-        activityId: activity.id,
-        enrollmentId,
-      })
-      completion.markComplete()
-      activity.markComplete(completion)
-      await this.activities.save(activity)
-
-      await this.eventBus.dispatch(activity.pullEvents())
-    }
+    const completion =
+      (await this.completions.findByActivityAndEnrollment(activity.id, enrollmentId)) ??
+      Completion.create(crypto.randomUUID(), { activityId: activity.id, enrollmentId })
+    completion.markComplete()
+    await this.completions.save(completion)
+    await this.eventBus.dispatch(completion.pullEvents())
   }
 
   async getCompletionStatus(activityId: string, enrollmentId: string): Promise<boolean> {
-    const activity = await this.findById(activityId)
-    return activity.isCompletedBy(enrollmentId)
+    const completion = await this.completions.findByActivityAndEnrollment(activityId, enrollmentId)
+    return completion?.isComplete ?? false
   }
 }

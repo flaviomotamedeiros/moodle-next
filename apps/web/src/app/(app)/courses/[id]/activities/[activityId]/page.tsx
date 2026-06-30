@@ -1,29 +1,26 @@
 'use client'
 
-import { use } from 'react'
+import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  ChevronRight, FileText, ListChecks, MessageSquare, BookText, CalendarCheck, Info,
+  ChevronRight, FileText, ListChecks, MessageSquare, BookText, CalendarCheck,
+  Send, CheckCircle2, Loader2, Info,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { LoadingState, ErrorState } from '@/components/ui/states'
 import { useApi } from '@/lib/use-api'
+import { api } from '@/lib/api-client'
+import { getStoredUser } from '@/lib/auth'
 
-interface ActivityDto {
-  id: string
-  courseId: string
-  pluginId: string
-  name: string
-}
+interface ActivityDto { id: string; courseId: string; pluginId: string; name: string }
 interface CourseDto { id: string; shortName: string }
+interface SubmissionDto { id: string; status: string; content: { text?: string }; submittedAt: string | null }
 
 const ICON: Record<string, typeof FileText> = {
-  mod_assign: FileText,
-  mod_quiz: ListChecks,
-  mod_forum: MessageSquare,
-  mod_page: BookText,
-  mod_attendance: CalendarCheck,
+  mod_assign: FileText, mod_quiz: ListChecks, mod_forum: MessageSquare,
+  mod_page: BookText, mod_attendance: CalendarCheck,
 }
 
 export default function ActivityPage({
@@ -66,29 +63,95 @@ export default function ActivityPage({
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Descrição</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base">Descrição</CardTitle></CardHeader>
         <CardContent className="text-sm leading-relaxed text-muted-foreground">
           Atividade do tipo <span className="font-medium capitalize text-foreground">{modType}</span>,
-          carregada diretamente do Moodle. O conteúdo completo e o material da seção
-          ficam disponíveis na plataforma.
+          carregada do Moodle. O material completo fica disponível na seção do curso.
         </CardContent>
       </Card>
 
-      {/* Stage 1: writes still live in the legacy system. */}
-      <Card>
-        <CardContent className="flex items-start gap-3 p-5">
-          <Info className="mt-0.5 size-5 shrink-0 text-primary" />
-          <div className="text-sm">
-            <p className="font-medium">Envios e avaliação são feitos no Moodle atual</p>
-            <p className="mt-1 text-muted-foreground">
-              Nesta fase de migração, a nova plataforma exibe os dados em modo leitura.
-              Submeter respostas e lançar notas continua no sistema legado até a próxima etapa.
+      {a.pluginId === 'mod_assign' ? (
+        <SubmissionSection activityId={a.id} />
+      ) : (
+        <Card>
+          <CardContent className="flex items-start gap-3 p-5">
+            <Info className="mt-0.5 size-5 shrink-0 text-primary" />
+            <p className="text-sm text-muted-foreground">
+              Este tipo de atividade é exibido em modo leitura nesta etapa.
             </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
+  )
+}
+
+/** Real submission widget — writes to the new system (Stage 2). */
+function SubmissionSection({ activityId }: { activityId: string }) {
+  const user = getStoredUser()
+  const enrollmentId = user ? `legacy-user-${user.id}` : ''
+
+  const [submission, setSubmission] = useState<SubmissionDto | null>(null)
+  const [text, setText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [editing, setEditing] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    api.get<SubmissionDto | null>(`/activities/${activityId}/submission?enrollmentId=${enrollmentId}`)
+      .then(s => { if (active) { setSubmission(s); setText(s?.content?.text ?? '') } })
+      .finally(() => active && setLoading(false))
+    return () => { active = false }
+  }, [activityId, enrollmentId])
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const s = await api.post<SubmissionDto>(`/activities/${activityId}/submissions`, {
+        enrollmentId, content: { text },
+      })
+      setSubmission(s)
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const submitted = submission?.status === 'submitted' && !editing
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Sua resposta</CardTitle></CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Carregando…</p>
+        ) : submitted ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-md bg-success-subtle px-4 py-3 text-sm text-success">
+              <CheckCircle2 className="size-4" /> Enviado para avaliação.
+            </div>
+            <p className="whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-sm">
+              {submission?.content?.text}
+            </p>
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>Editar resposta</Button>
+          </div>
+        ) : (
+          <form onSubmit={send} className="space-y-3">
+            <textarea
+              value={text}
+              onChange={e => setText(e.target.value)}
+              rows={6}
+              placeholder="Digite sua resposta…"
+              className="w-full rounded-md border border-input bg-background p-3 text-sm transition-colors placeholder:text-muted-foreground focus-visible:border-ring"
+            />
+            <Button type="submit" disabled={saving || !text.trim()}>
+              {saving ? <Loader2 className="animate-spin" /> : <Send />} Enviar resposta
+            </Button>
+          </form>
+        )}
+      </CardContent>
+    </Card>
   )
 }

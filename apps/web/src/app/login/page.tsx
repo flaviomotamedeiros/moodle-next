@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
 import { Logo } from '@/components/app-shell/logo'
@@ -32,26 +32,34 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
       {/* Brand panel */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-primary p-12 text-primary-foreground lg:flex">
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            background:
-              'radial-gradient(900px circle at 20% 10%, hsl(245 80% 70%), transparent 45%), radial-gradient(700px circle at 90% 90%, hsl(265 75% 55%), transparent 40%)',
-          }}
-        />
+      <div className="bg-mesh relative hidden flex-col justify-between overflow-hidden p-12 text-white lg:flex">
+        <div className="absolute inset-0 bg-dots opacity-[0.15] [--foreground:0_0%_100%]" />
         <div className="relative">
-          <Logo className="[&_span]:text-primary-foreground" />
+          <Logo className="[&_span]:text-white" />
         </div>
         <div className="relative max-w-md">
-          <p className="text-2xl font-semibold leading-snug tracking-tight text-balance">
-            Uma plataforma de aprendizagem moderna, construída sobre fundamentos sólidos.
+          <p className="text-3xl font-semibold leading-tight tracking-tight text-balance">
+            O Moodle que você conhece, reimaginado.
           </p>
-          <p className="mt-4 text-sm text-primary-foreground/70">
-            Domínio modelado com DDD · Extensível por contratos · Acessível por padrão
+          <p className="mt-4 text-base leading-relaxed text-white/80">
+            Mesma base de dados, uma experiência moderna, rápida e acessível.
           </p>
+          <ul className="mt-8 space-y-3 text-sm text-white/85">
+            {[
+              'Domínio modelado com DDD',
+              'Extensível por contratos de plugin',
+              'Acessível por padrão (WCAG AA)',
+            ].map(item => (
+              <li key={item} className="flex items-center gap-3">
+                <span className="inline-flex size-5 items-center justify-center rounded-full bg-white/20">
+                  <Check className="size-3" />
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
-        <div className="relative text-xs text-primary-foreground/60">
+        <div className="relative text-xs text-white/60">
           © {new Date().getFullYear()} moodle-next
         </div>
       </div>

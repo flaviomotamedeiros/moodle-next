@@ -60,3 +60,28 @@ model Activity {
 
   @@map("activities")
 }
+
+/// Submissions owned by the NEW system (decoupled from the Activity aggregate).
+model Submission {
+  id            String    @id
+  activityId    String
+  enrollmentId  String
+  attemptNumber Int
+  status        String
+  content       String // JSON
+  submittedAt   DateTime?
+
+  @@unique([activityId, enrollmentId])
+  @@map("submissions")
+}
+
+/// Completions owned by the NEW system.
+model Completion {
+  id           String    @id
+  activityId   String
+  enrollmentId String
+  completedAt  DateTime?
+
+  @@unique([activityId, enrollmentId])
+  @@map("completions")
+}

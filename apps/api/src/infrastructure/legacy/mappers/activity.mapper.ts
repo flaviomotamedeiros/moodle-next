@@ -20,9 +20,6 @@ export class ActivityMapper {
       // Fallback to the module type when the instance has no name (e.g. label).
       name: row.name ?? row.modtype,
       visible: row.visible === 1,
-      // Read-only catalog: submissions/completions are loaded on demand later.
-      submissions: [],
-      completions: [],
     })
   }
 }

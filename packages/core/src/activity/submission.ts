@@ -1,4 +1,4 @@
-import { Entity } from '../shared/entity.js'
+import { AggregateRoot } from '../shared/aggregate-root.js'
 import { BaseDomainEvent } from '../shared/domain-event.js'
 import { fail, ok, type Result } from '../shared/result.js'
 
@@ -25,7 +25,11 @@ export interface SubmissionProps {
 
 export type SubmissionError = 'ALREADY_SUBMITTED' | 'ALREADY_BEING_GRADED'
 
-export class Submission extends Entity {
+/**
+ * A Submission is an aggregate root — a Student's response to an Activity.
+ * It is persisted independently of the Activity definition.
+ */
+export class Submission extends AggregateRoot {
   private constructor(
     id: string,
     private props: SubmissionProps,
@@ -34,7 +38,9 @@ export class Submission extends Entity {
   }
 
   static create(id: string, props: Omit<SubmissionProps, 'status' | 'submittedAt'>): Submission {
-    return new Submission(id, { ...props, status: 'draft' })
+    const submission = new Submission(id, { ...props, status: 'draft' })
+    submission.emit(new SubmissionCreated(id, props.activityId, props.enrollmentId))
+    return submission
   }
 
   static reconstitute(id: string, props: SubmissionProps): Submission {
@@ -70,4 +76,11 @@ export class Submission extends Entity {
   markGraded(): void {
     this.props.status = 'graded'
   }
+}
+
+export interface SubmissionRepository {
+  findById(id: string): Promise<Submission | null>
+  findByActivityAndEnrollment(activityId: string, enrollmentId: string): Promise<Submission | null>
+  findByActivity(activityId: string): Promise<Submission[]>
+  save(submission: Submission): Promise<void>
 }

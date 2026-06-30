@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { EnrollmentController } from './enrollment.controller.js'
+import { ParticipantsController } from './participants.controller.js'
 import { EnrollmentService } from './enrollment.service.js'
 import { PrismaEnrollmentRepository } from '../../infrastructure/database/prisma-enrollment.repository.js'
 import { StranglerEnrollmentRepository } from '../../infrastructure/legacy/strangler-enrollment.repository.js'
@@ -9,7 +10,7 @@ import { StranglerEnrollmentRepository } from '../../infrastructure/legacy/stran
  * reads merge new DB + legacy, writes go to the new DB (Prisma/SQLite).
  */
 @Module({
-  controllers: [EnrollmentController],
+  controllers: [EnrollmentController, ParticipantsController],
   providers: [
     EnrollmentService,
     PrismaEnrollmentRepository,

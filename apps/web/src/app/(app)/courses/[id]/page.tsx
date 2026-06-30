@@ -6,7 +6,7 @@ import { FileText, MessageSquare, ListChecks, ChevronRight, BookText, CalendarCh
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingState, ErrorState } from '@/components/ui/states'
 import { PluginSlot } from '@/plugins/plugin-slot'
-import { useApi, hueFromId } from '@/lib/use-api'
+import { useApi } from '@/lib/use-api'
 
 interface CourseDto {
   id: string
@@ -43,7 +43,6 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
   if (course.error || !course.data) return <ErrorState message={course.error ?? 'Curso não encontrado'} />
 
   const c = course.data
-  const hue = hueFromId(c.id)
 
   return (
     <div className="space-y-6">
@@ -53,11 +52,8 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
         <span className="text-foreground">{c.shortName}</span>
       </nav>
 
-      <div
-        className="relative overflow-hidden rounded-lg p-8 text-white"
-        style={{ background: `linear-gradient(135deg, hsl(${hue} 70% 50%), hsl(${hue + 30} 65% 42%))` }}
-      >
-        <p className="text-sm font-medium text-white/80">{c.shortName}</p>
+      <div className="gradient-brand relative overflow-hidden rounded-xl p-8 text-white shadow-sm">
+        <p className="text-sm font-medium text-white/75">{c.shortName}</p>
         <h1 className="mt-1 max-w-2xl text-2xl font-semibold leading-snug tracking-tight text-balance">
           {c.fullName}
         </h1>

@@ -1,4 +1,4 @@
-import type { Course, Activity, Enrollment, Grade } from '@moodle-next/core'
+import type { Course, Activity, Enrollment, Grade, Submission } from '@moodle-next/core'
 
 /**
  * Maps domain aggregates to plain response DTOs using their public getters.
@@ -63,6 +63,26 @@ export const presentEnrollment = (e: Enrollment): EnrollmentDto => ({
   courseId: e.courseId,
   role: e.role,
   status: e.status,
+})
+
+export interface SubmissionDto {
+  id: string
+  activityId: string
+  enrollmentId: string
+  status: string
+  attemptNumber: number
+  content: Record<string, unknown>
+  submittedAt: string | null
+}
+
+export const presentSubmission = (s: Submission): SubmissionDto => ({
+  id: s.id,
+  activityId: s.activityId,
+  enrollmentId: s.enrollmentId,
+  status: s.status,
+  attemptNumber: s.attemptNumber,
+  content: s.content,
+  submittedAt: s.submittedAt?.toISOString() ?? null,
 })
 
 export const presentGrade = (g: Grade): GradeDto => ({

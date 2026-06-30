@@ -4,15 +4,15 @@
 
 @layer base {
   :root {
-    /* Neutrals — slate-based, slightly cool */
-    --background: 0 0% 100%;
-    --foreground: 222 24% 12%;
+    /* Neutrals — slate-based, slightly cool. Tinted bg so white cards pop. */
+    --background: 220 33% 98.5%;
+    --foreground: 222 28% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222 24% 12%;
-    --muted: 220 16% 96%;
-    --muted-foreground: 220 9% 46%;
-    --border: 220 15% 91%;
-    --input: 220 15% 88%;
+    --card-foreground: 222 28% 11%;
+    --muted: 220 18% 95.5%;
+    --muted-foreground: 220 10% 44%;
+    --border: 220 18% 92%;
+    --input: 220 16% 87%;
 
     /* Brand — indigo */
     --primary: 245 75% 59%;
@@ -92,5 +92,28 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Brand surface — a single calm indigo, barely-there tonal shift */
+  .gradient-brand {
+    background-image: linear-gradient(160deg, hsl(244 64% 54%), hsl(246 70% 46%));
+  }
+
+  /* Restrained brand backdrop — same hue family, one soft highlight */
+  .bg-mesh {
+    background-color: hsl(245 66% 50%);
+    background-image:
+      radial-gradient(at 22% 14%, hsl(243 72% 62% / 0.55) 0px, transparent 52%),
+      radial-gradient(at 82% 88%, hsl(248 70% 42% / 0.55) 0px, transparent 52%);
+  }
+
+  /* Subtle dotted grid for section backdrops */
+  .bg-dots {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }

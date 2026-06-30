@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, UseGuards, Query } from '@nestjs/co
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard.js'
 import { ActivityService } from './activity.service.js'
 import { CreateSubmissionDto } from './dto/create-submission.dto.js'
-import { presentActivity } from '../../shared/presenters.js'
+import { presentActivity, presentSubmission } from '../../shared/presenters.js'
 
 @Controller('activities')
 @UseGuards(JwtAuthGuard)
@@ -21,9 +21,20 @@ export class ActivityController {
     return presentActivity(await this.activityService.findById(id))
   }
 
+  /** Student's submission for an activity (or null). */
+  @Get(':id/submission')
+  async getSubmission(
+    @Param('id') activityId: string,
+    @Query('enrollmentId') enrollmentId: string,
+  ) {
+    const submission = await this.activityService.getSubmission(activityId, enrollmentId)
+    return submission ? presentSubmission(submission) : null
+  }
+
+  /** Submit (or edit) a response — persisted in the new database. */
   @Post(':id/submissions')
-  submit(@Param('id') activityId: string, @Body() dto: CreateSubmissionDto) {
-    return this.activityService.submit(activityId, dto)
+  async submit(@Param('id') activityId: string, @Body() dto: CreateSubmissionDto) {
+    return presentSubmission(await this.activityService.submit(activityId, dto))
   }
 
   @Get(':id/completion')

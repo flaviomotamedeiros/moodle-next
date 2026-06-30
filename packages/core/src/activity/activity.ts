@@ -1,8 +1,5 @@
 import { AggregateRoot } from '../shared/aggregate-root.js'
 import { BaseDomainEvent } from '../shared/domain-event.js'
-import { fail, ok, type Result } from '../shared/result.js'
-import type { Submission } from './submission.js'
-import type { Completion } from './completion.js'
 
 export class ActivityCreated extends BaseDomainEvent {
   constructor(readonly activityId: string, readonly courseId: string, readonly pluginId: string) {
@@ -10,6 +7,13 @@ export class ActivityCreated extends BaseDomainEvent {
   }
 }
 
+/**
+ * An Activity is a definition (forum, quiz, assignment) within a Course Section.
+ * Submissions and Completions are SEPARATE aggregates (Submission, Completion)
+ * with their own repositories — they are new-system data attached to an activity,
+ * not part of the activity definition. This keeps legacy-authored definitions
+ * decoupled from new-system writes.
+ */
 export interface ActivityProps {
   courseId: string
   sectionId: string
@@ -17,11 +21,7 @@ export interface ActivityProps {
   pluginId: string
   name: string
   visible: boolean
-  submissions: Submission[]
-  completions: Completion[]
 }
-
-export type ActivityError = 'SUBMISSION_NOT_FOUND' | 'ALREADY_GRADING'
 
 export class Activity extends AggregateRoot {
   private constructor(
@@ -31,8 +31,8 @@ export class Activity extends AggregateRoot {
     super(id)
   }
 
-  static create(id: string, props: Omit<ActivityProps, 'submissions' | 'completions'>): Activity {
-    const activity = new Activity(id, { ...props, submissions: [], completions: [] })
+  static create(id: string, props: ActivityProps): Activity {
+    const activity = new Activity(id, props)
     activity.emit(new ActivityCreated(id, props.courseId, props.pluginId))
     return activity
   }
@@ -46,27 +46,4 @@ export class Activity extends AggregateRoot {
   get pluginId(): string { return this.props.pluginId }
   get name(): string { return this.props.name }
   get visible(): boolean { return this.props.visible }
-  get submissions(): readonly Submission[] { return this.props.submissions }
-  get completions(): readonly Completion[] { return this.props.completions }
-
-  addSubmission(submission: Submission): void {
-    this.props.submissions.push(submission)
-  }
-
-  findSubmission(id: string): Submission | undefined {
-    return this.props.submissions.find(s => s.id === id)
-  }
-
-  markComplete(completion: Completion): void {
-    const existing = this.props.completions.findIndex(c => c.enrollmentId === completion.enrollmentId)
-    if (existing >= 0) {
-      this.props.completions[existing] = completion
-    } else {
-      this.props.completions.push(completion)
-    }
-  }
-
-  isCompletedBy(enrollmentId: string): boolean {
-    return this.props.completions.some(c => c.enrollmentId === enrollmentId && c.completedAt != null)
-  }
 }

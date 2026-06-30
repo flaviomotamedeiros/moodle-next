@@ -23,8 +23,6 @@ export class PrismaActivityRepository implements ActivityRepository {
       pluginId: r.pluginId,
       name: r.name,
       visible: r.visible,
-      submissions: [],
-      completions: [],
     })
   }
 

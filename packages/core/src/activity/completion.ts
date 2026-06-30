@@ -1,4 +1,4 @@
-import { Entity } from '../shared/entity.js'
+import { AggregateRoot } from '../shared/aggregate-root.js'
 import { BaseDomainEvent } from '../shared/domain-event.js'
 
 export class CompletionAchieved extends BaseDomainEvent {
@@ -18,7 +18,8 @@ export interface CompletionProps {
   satisfiedCriteria: string[]
 }
 
-export class Completion extends Entity {
+/** A Completion is an aggregate root — a Student's completion state for an Activity. */
+export class Completion extends AggregateRoot {
   private constructor(
     id: string,
     private props: CompletionProps,
@@ -48,6 +49,12 @@ export class Completion extends Entity {
   markComplete(): void {
     if (!this.props.completedAt) {
       this.props.completedAt = new Date()
+      this.emit(new CompletionAchieved(this.props.activityId, this.props.enrollmentId))
     }
   }
+}
+
+export interface CompletionRepository {
+  findByActivityAndEnrollment(activityId: string, enrollmentId: string): Promise<Completion | null>
+  save(completion: Completion): Promise<void>
 }

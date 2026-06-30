@@ -39,6 +39,8 @@ export class LegacyGradeRepository implements GradeRepository {
     // enrollmentId in legacy ACL = "legacy-user-{userid}"
     const userId = enrollmentId.replace('legacy-user-', '')
     const [module, instance] = activityId.split('-')
+    // Not a legacy-formatted activity id ("module-instance"): no legacy match.
+    if (!module || !instance) return null
     const rows = await this.db.query<MdlGrade>(
       `${this.BASE_SQL} AND gg.userid = ? AND gi.itemmodule = ? AND gi.iteminstance = ? LIMIT 1`,
       [userId, module, instance],

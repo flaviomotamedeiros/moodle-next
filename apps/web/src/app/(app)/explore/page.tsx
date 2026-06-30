@@ -8,7 +8,6 @@ import { Input, Label } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { LoadingState, ErrorState } from '@/components/ui/states'
 import { api } from '@/lib/api-client'
-import { hueFromId } from '@/lib/use-api'
 
 interface CourseDto { id: string; fullName: string; shortName: string }
 interface MyCourse { id: string }
@@ -114,13 +113,13 @@ export default function ExplorePage() {
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {courses.map(course => {
           const enrolled = enrolledIds.has(course.id)
-          const hue = hueFromId(course.id)
           return (
             <Card key={course.id} className="flex flex-col overflow-hidden">
-              <div
-                className="h-20 w-full"
-                style={{ background: `linear-gradient(135deg, hsl(${hue} 70% 56%), hsl(${hue + 30} 65% 48%))` }}
-              />
+              <div className="relative h-16 w-full overflow-hidden border-b border-border bg-accent">
+                <span className="absolute -right-1 -top-1.5 select-none text-6xl font-bold leading-none text-primary/10">
+                  {course.shortName.slice(0, 3)}
+                </span>
+              </div>
               <CardHeader className="pb-3">
                 <Badge variant="outline" className="w-fit">{course.shortName}</Badge>
                 <CardTitle className="line-clamp-2 text-base leading-snug">{course.fullName}</CardTitle>
