@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
 import { Logo } from '@/components/app-shell/logo'
-import { api } from '@/lib/api-client'
+import { login } from '@/lib/auth'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -20,11 +20,7 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      const { accessToken } = await api.post<{ accessToken: string }>('/auth/login', {
-        username,
-        password,
-      })
-      api.setToken(accessToken)
+      await login(username, password)
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível entrar')
@@ -118,6 +114,14 @@ export default function LoginPage() {
               {loading ? 'Entrando…' : 'Entrar'}
             </Button>
           </form>
+
+          <div className="mt-6 rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">Acesso de demonstração</p>
+            <p className="mt-1">
+              Usuário <code className="rounded bg-background px-1 py-0.5">ana.cavalcante</code> ·
+              senha <code className="rounded bg-background px-1 py-0.5">Moodle@2025</code>
+            </p>
+          </div>
         </div>
       </div>
     </main>

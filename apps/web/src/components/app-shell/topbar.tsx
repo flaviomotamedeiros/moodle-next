@@ -1,10 +1,10 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import { Avatar } from '@/components/ui/avatar'
 import { ThemeToggle } from './theme-toggle'
+import { UserMenu } from './user-menu'
 
-export function Topbar({ userName = 'Ana Cavalcante' }: { userName?: string }) {
+export function Topbar() {
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-border bg-background/80 px-6 backdrop-blur-md">
       <div className="relative max-w-md flex-1">
@@ -19,12 +19,7 @@ export function Topbar({ userName = 'Ana Cavalcante' }: { userName?: string }) {
 
       <div className="ml-auto flex items-center gap-3">
         <ThemeToggle />
-        <button
-          className="flex items-center gap-2.5 rounded-full p-0.5 transition-opacity hover:opacity-80"
-          aria-label="Menu do usuário"
-        >
-          <Avatar name={userName} size="sm" />
-        </button>
+        <UserMenu />
       </div>
     </header>
   )

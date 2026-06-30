@@ -1,39 +1,37 @@
 'use client'
 
-import { CalendarClock } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { SlotContext } from '@/plugins/plugin-registry'
-import { ACTIVITIES } from '@/lib/mock-data'
+import { useApi } from '@/lib/use-api'
+
+interface ActivityDto { id: string; name: string; pluginId: string }
 
 /**
- * Example first-party plugin: renders upcoming deadlines in the course sidebar.
- * Demonstrates the contract — a plugin receives a SlotContext and returns UI,
- * without the core knowing anything about it.
- *
- * Registered against the "course.sidebar" slot in providers.tsx.
+ * Example first-party plugin registered into the "course.sidebar" slot.
+ * Demonstrates a plugin consuming the real API through the slot contract —
+ * the core knows nothing about it.
  */
 export function UpcomingDeadlinesBlock({ context }: { context: SlotContext }) {
-  const items = (ACTIVITIES[context.courseId ?? ''] ?? [])
-    .filter(a => a.status !== 'complete')
-    .slice(0, 3)
+  const { data } = useApi<ActivityDto[]>(
+    context.courseId ? `/activities?courseId=${context.courseId}` : null,
+  )
 
+  const items = (data ?? []).slice(0, 5)
   if (items.length === 0) return null
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
-          <CalendarClock className="size-4 text-primary" />
-          Próximos prazos
+          <Layers className="size-4 text-primary" />
+          Atividades do curso
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {items.map(a => (
-          <div key={a.id} className="flex items-start justify-between gap-3 text-sm">
-            <span className="min-w-0 flex-1 truncate">{a.name}</span>
-            <span className="shrink-0 text-xs text-muted-foreground">
-              {new Date(a.dueDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-            </span>
+          <div key={a.id} className="truncate text-sm text-muted-foreground">
+            {a.name}
           </div>
         ))}
       </CardContent>

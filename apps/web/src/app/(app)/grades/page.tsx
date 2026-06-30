@@ -1,77 +1,107 @@
-import { Card } from '@/components/ui/card'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { COURSES, ACTIVITIES } from '@/lib/mock-data'
+import { LoadingState, ErrorState, EmptyState } from '@/components/ui/states'
+import { api } from '@/lib/api-client'
+import { getStoredUser } from '@/lib/auth'
 
-/** Flattened gradebook view across all courses with assigned grades. */
-const rows = COURSES.flatMap(course =>
-  (ACTIVITIES[course.id] ?? [])
-    .filter(a => a.grade !== null)
-    .map(a => ({
-      course: course.shortName,
-      courseFull: course.fullName,
-      activity: a.name,
-      grade: a.grade!,
-      maxGrade: a.maxGrade,
-    })),
-)
+interface MyCourse { id: string; fullName: string; shortName: string }
+interface GradeItem { id: string; activityId: string; value: number | null; maxValue: number; percentage: number | null }
+interface Gradebook { finalGrade: number | null; grades: GradeItem[] }
 
-function gradeTone(pct: number): 'success' | 'warning' | 'danger' {
+interface CourseGrades { course: MyCourse; book: Gradebook }
+
+function tone(pct: number): 'success' | 'warning' | 'danger' {
   if (pct >= 70) return 'success'
   if (pct >= 50) return 'warning'
   return 'danger'
 }
 
 export default function GradesPage() {
-  const average =
-    rows.length > 0
-      ? Math.round(rows.reduce((sum, r) => sum + (r.grade / r.maxGrade) * 100, 0) / rows.length)
-      : 0
+  const [data, setData] = useState<CourseGrades[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    const user = getStoredUser()
+    if (!user) return
+
+    ;(async () => {
+      try {
+        const courses = await api.get<MyCourse[]>('/me/courses')
+        const enrollmentId = `legacy-user-${user.id}`
+        const books = await Promise.all(
+          courses.map(async course => {
+            const book = await api.get<Gradebook>(
+              `/grades/courses/${course.id}?enrollmentId=${enrollmentId}`,
+            )
+            return { course, book }
+          }),
+        )
+        if (active) setData(books.filter(b => b.book.grades.length > 0))
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : 'Erro ao carregar notas')
+      } finally {
+        if (active) setLoading(false)
+      }
+    })()
+
+    return () => { active = false }
+  }, [])
+
+  if (loading) return <LoadingState label="Carregando notas…" />
+  if (error) return <ErrorState message={error} />
+  if (!data || data.length === 0) return <EmptyState message="Nenhuma nota lançada ainda." />
 
   return (
     <div className="space-y-6">
-      <header className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Notas</h1>
-          <p className="mt-1 text-muted-foreground">Seu desempenho em todas as atividades avaliadas.</p>
-        </div>
-        <div className="text-right">
-          <div className="text-3xl font-semibold tabular-nums tracking-tight">{average}%</div>
-          <div className="text-sm text-muted-foreground">Média geral</div>
-        </div>
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight">Notas</h1>
+        <p className="mt-1 text-muted-foreground">Seu desempenho por curso, direto do Moodle.</p>
       </header>
 
-      <Card className="overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <th className="px-5 py-3 font-medium">Curso</th>
-              <th className="px-5 py-3 font-medium">Atividade</th>
-              <th className="px-5 py-3 text-right font-medium">Nota</th>
-              <th className="px-5 py-3 text-right font-medium">Percentual</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {rows.map((r, i) => {
-              const pct = Math.round((r.grade / r.maxGrade) * 100)
-              return (
-                <tr key={i} className="transition-colors hover:bg-muted/30">
-                  <td className="px-5 py-3.5">
-                    <Badge variant="outline">{r.course}</Badge>
-                  </td>
-                  <td className="px-5 py-3.5 font-medium">{r.activity}</td>
-                  <td className="px-5 py-3.5 text-right tabular-nums">
-                    {r.grade}
-                    <span className="text-muted-foreground">/{r.maxGrade}</span>
-                  </td>
-                  <td className="px-5 py-3.5 text-right">
-                    <Badge variant={gradeTone(pct)}>{pct}%</Badge>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </Card>
+      <div className="space-y-5">
+        {data.map(({ course, book }) => (
+          <Card key={course.id}>
+            <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
+              <div className="min-w-0">
+                <CardTitle className="truncate text-base">{course.fullName}</CardTitle>
+                <Badge variant="outline" className="mt-1">{course.shortName}</Badge>
+              </div>
+              {book.finalGrade !== null && (
+                <div className="text-right">
+                  <div className="text-2xl font-semibold tabular-nums tracking-tight">
+                    {book.finalGrade.toFixed(1)}%
+                  </div>
+                  <div className="text-xs text-muted-foreground">Média</div>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent className="p-0">
+              <ul className="divide-y divide-border border-t border-border">
+                {book.grades.filter(g => g.value !== null).map(g => (
+                  <li key={g.id} className="flex items-center justify-between gap-4 px-6 py-3">
+                    <span className="truncate text-sm capitalize text-muted-foreground">
+                      {g.activityId.replace('-', ' ')}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm tabular-nums">
+                        {g.value}<span className="text-muted-foreground">/{g.maxValue}</span>
+                      </span>
+                      {g.percentage !== null && (
+                        <Badge variant={tone(g.percentage)}>{Math.round(g.percentage)}%</Badge>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

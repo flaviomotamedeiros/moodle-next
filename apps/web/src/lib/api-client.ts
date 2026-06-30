@@ -28,6 +28,7 @@ class ApiClient {
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
+    if (!this.token) this.loadToken()
     const res = await fetch(`/api${path}`, {
       ...init,
       headers: {

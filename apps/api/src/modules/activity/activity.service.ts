@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, Inject } from '@nestjs/common'
 import {
   Activity,
   Submission,
@@ -13,7 +13,7 @@ import type { CreateSubmissionDto } from './dto/create-submission.dto.js'
 @Injectable()
 export class ActivityService {
   constructor(
-    private readonly activities: ActivityRepository,
+    @Inject('ACTIVITY_REPOSITORY') private readonly activities: ActivityRepository,
     private readonly plugins: PluginRegistryService,
     private readonly eventBus: EventBusService,
   ) {}
@@ -22,6 +22,10 @@ export class ActivityService {
     const activity = await this.activities.findById(id)
     if (!activity) throw new NotFoundException(`Activity ${id} not found`)
     return activity
+  }
+
+  async findByCourse(courseId: string): Promise<Activity[]> {
+    return this.activities.findByCourse(courseId)
   }
 
   async submit(activityId: string, dto: CreateSubmissionDto): Promise<Submission> {

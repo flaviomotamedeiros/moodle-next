@@ -1,0 +1,9 @@
+export * from './shared/index.js';
+export * from './identity/index.js';
+export * from './course/index.js';
+export * from './enrollment/index.js';
+export * from './activity/index.js';
+export * from './grading/index.js';
+export * from './auth/index.js';
+export * from './notification/index.js';
+//# sourceMappingURL=index.d.ts.map

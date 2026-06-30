@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, Inject } from '@nestjs/common'
 import { Grade, Gradebook, type GradeRepository } from '@moodle-next/core'
 import { EventBusService } from '../../infrastructure/event-bus/event-bus.service.js'
 import { DomainException } from '../../shared/filters/domain-exception.filter.js'
@@ -12,7 +12,7 @@ const DOMAIN_ERRORS: Record<string, string> = {
 @Injectable()
 export class GradingService {
   constructor(
-    private readonly grades: GradeRepository,
+    @Inject('GRADE_REPOSITORY') private readonly grades: GradeRepository,
     private readonly eventBus: EventBusService,
   ) {}
 

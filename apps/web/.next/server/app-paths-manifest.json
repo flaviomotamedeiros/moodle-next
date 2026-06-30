@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/login/page": "app/login/page.js",
+  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
+  "/(app)/courses/page": "app/(app)/courses/page.js",
+  "/(app)/courses/[id]/page": "app/(app)/courses/[id]/page.js",
+  "/(app)/courses/[id]/activities/[activityId]/page": "app/(app)/courses/[id]/activities/[activityId]/page.js",
+  "/(app)/grades/page": "app/(app)/grades/page.js",
+  "/(app)/notifications/page": "app/(app)/notifications/page.js",
+  "/(app)/settings/page": "app/(app)/settings/page.js"
+}

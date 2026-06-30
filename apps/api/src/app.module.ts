@@ -10,6 +10,7 @@ import { PluginRegistryModule } from './infrastructure/plugin-registry/plugin-re
 import { DatabaseModule } from './infrastructure/database/database.module.js'
 import { LegacyModule } from './infrastructure/legacy/legacy.module.js'
 import { MigrationModule } from './modules/migration/migration.module.js'
+import { MeModule } from './modules/me/me.module.js'
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MigrationModule } from './modules/migration/migration.module.js'
     ActivityModule,
     GradingModule,
     MigrationModule,
+    MeModule,
   ],
 })
 export class AppModule {}

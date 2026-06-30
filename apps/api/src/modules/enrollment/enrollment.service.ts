@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, Inject } from '@nestjs/common'
 import {
   EnrollUserService,
   Enrollment,
@@ -19,7 +19,7 @@ export class EnrollmentService {
   private readonly enrollUserService: EnrollUserService
 
   constructor(
-    private readonly enrollments: EnrollmentRepository,
+    @Inject('ENROLLMENT_REPOSITORY') private readonly enrollments: EnrollmentRepository,
     private readonly eventBus: EventBusService,
   ) {
     this.enrollUserService = new EnrollUserService({
@@ -41,6 +41,10 @@ export class EnrollmentService {
 
   async findByCourse(courseId: string): Promise<Enrollment[]> {
     return this.enrollments.findByCourse(courseId)
+  }
+
+  async findByUser(userId: string): Promise<Enrollment[]> {
+    return this.enrollments.findByUser(userId)
   }
 
   async suspend(enrollmentId: string): Promise<void> {

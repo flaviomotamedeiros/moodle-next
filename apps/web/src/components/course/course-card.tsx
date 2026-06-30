@@ -7,9 +7,11 @@ export interface CourseCardData {
   id: string
   fullName: string
   shortName: string
-  category: string
-  progress: number
-  /** Deterministic accent hue for the cover, derived from the course id */
+  /** Optional context chip (category name or the user's role). */
+  tag?: string
+  /** Per-user progress 0–100. Undefined when not available (Stage 1). */
+  progress?: number
+  /** Deterministic accent hue for the cover. */
   hue: number
 }
 
@@ -19,7 +21,6 @@ export function CourseCard({ course }: { course: CourseCardData }) {
   return (
     <Link href={`/courses/${course.id}`} className="group block">
       <Card interactive className="h-full overflow-hidden">
-        {/* Cover — a calm gradient keyed to the course, not a stock photo */}
         <div
           className="h-24 w-full"
           style={{
@@ -29,19 +30,21 @@ export function CourseCard({ course }: { course: CourseCardData }) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-2">
             <Badge variant="outline">{course.shortName}</Badge>
-            <span className="text-xs text-muted-foreground">{course.category}</span>
+            {course.tag && <span className="text-xs text-muted-foreground">{course.tag}</span>}
           </div>
           <h3 className="line-clamp-2 font-semibold leading-snug tracking-tight text-balance group-hover:text-primary">
             {course.fullName}
           </h3>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Progresso</span>
-            <span className="font-medium tabular-nums text-foreground">{course.progress}%</span>
-          </div>
-          <Progress value={course.progress} tone={tone} className="mt-2" />
-        </CardContent>
+        {course.progress !== undefined && (
+          <CardContent>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Progresso</span>
+              <span className="font-medium tabular-nums text-foreground">{course.progress}%</span>
+            </div>
+            <Progress value={course.progress} tone={tone} className="mt-2" />
+          </CardContent>
+        )}
       </Card>
     </Link>
   )

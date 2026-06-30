@@ -5,6 +5,7 @@ import {
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard.js'
 import { EnrollmentService } from './enrollment.service.js'
 import { EnrollUserDto } from './dto/enroll-user.dto.js'
+import { presentEnrollment } from '../../shared/presenters.js'
 
 @Controller('courses/:courseId/enrollments')
 @UseGuards(JwtAuthGuard)
@@ -12,16 +13,14 @@ export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
 
   @Post()
-  enroll(
-    @Param('courseId') courseId: string,
-    @Body() dto: EnrollUserDto,
-  ) {
-    return this.enrollmentService.enroll(courseId, dto)
+  async enroll(@Param('courseId') courseId: string, @Body() dto: EnrollUserDto) {
+    return presentEnrollment(await this.enrollmentService.enroll(courseId, dto))
   }
 
   @Get()
-  findByCourse(@Param('courseId') courseId: string) {
-    return this.enrollmentService.findByCourse(courseId)
+  async findByCourse(@Param('courseId') courseId: string) {
+    const enrollments = await this.enrollmentService.findByCourse(courseId)
+    return enrollments.map(presentEnrollment)
   }
 
   @Patch(':enrollmentId/suspend')

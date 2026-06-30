@@ -1,6 +1,9 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { createPool, type Pool, type PoolConnection } from 'mysql2/promise'
+import { createPool, type Pool } from 'mysql2/promise'
+
+/** Values accepted by a parameterized legacy query. */
+type SqlParam = string | number | null
 
 /**
  * Read-only connection to the legacy Moodle MariaDB database.
@@ -31,7 +34,7 @@ export class LegacyDbService implements OnModuleInit, OnModuleDestroy {
     await this.pool.end()
   }
 
-  async query<T = unknown>(sql: string, params?: unknown[]): Promise<T[]> {
+  async query<T = unknown>(sql: string, params: SqlParam[] = []): Promise<T[]> {
     const [rows] = await this.pool.execute(sql, params)
     return rows as T[]
   }

@@ -22,7 +22,7 @@ export interface SubmissionContext {
 
 export interface CompletionCheckContext {
   activityId: string
-  enrollment: EnrollmentRef
+  enrollmentId: string
 }
 
 /**

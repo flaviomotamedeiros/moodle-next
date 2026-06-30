@@ -4,13 +4,8 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "./dist",
-    "rootDir": "./src",
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "paths": {
-      "@moodle-next/core": ["../../packages/core/src/index.ts"],
-      "@moodle-next/plugin-sdk": ["../../packages/plugin-sdk/src/index.ts"]
-    }
+    "experimentalDecorators": true
   },
   "include": ["src"]
 }

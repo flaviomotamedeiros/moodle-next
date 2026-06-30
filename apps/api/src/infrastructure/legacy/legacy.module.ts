@@ -5,6 +5,7 @@ import { LegacyUserRepository } from './repositories/legacy-user.repository.js'
 import { LegacyCourseRepository } from './repositories/legacy-course.repository.js'
 import { LegacyEnrollmentRepository } from './repositories/legacy-enrollment.repository.js'
 import { LegacyGradeRepository } from './repositories/legacy-grade.repository.js'
+import { LegacyActivityRepository } from './repositories/legacy-activity.repository.js'
 
 @Global()
 @Module({
@@ -15,6 +16,7 @@ import { LegacyGradeRepository } from './repositories/legacy-grade.repository.js
     LegacyCourseRepository,
     LegacyEnrollmentRepository,
     LegacyGradeRepository,
+    LegacyActivityRepository,
   ],
   exports: [
     LegacyDbService,
@@ -23,6 +25,7 @@ import { LegacyGradeRepository } from './repositories/legacy-grade.repository.js
     LegacyCourseRepository,
     LegacyEnrollmentRepository,
     LegacyGradeRepository,
+    LegacyActivityRepository,
   ],
 })
 export class LegacyModule {}
