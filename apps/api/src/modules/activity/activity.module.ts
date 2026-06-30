@@ -1,14 +1,17 @@
 import { Module } from '@nestjs/common'
 import { ActivityController } from './activity.controller.js'
 import { ActivityService } from './activity.service.js'
-import { LegacyActivityRepository } from '../../infrastructure/legacy/repositories/legacy-activity.repository.js'
+import { PrismaActivityRepository } from '../../infrastructure/database/prisma-activity.repository.js'
+import { StranglerActivityRepository } from '../../infrastructure/legacy/strangler-activity.repository.js'
 
-/** Stage 1 (read-only): reads 100% from the legacy database via the ACL. */
+/** Stage 2 (coexist): reads merge new DB + legacy; writes go to the new DB. */
 @Module({
   controllers: [ActivityController],
   providers: [
     ActivityService,
-    { provide: 'ACTIVITY_REPOSITORY', useExisting: LegacyActivityRepository },
+    PrismaActivityRepository,
+    StranglerActivityRepository,
+    { provide: 'ACTIVITY_REPOSITORY', useExisting: StranglerActivityRepository },
   ],
   exports: [ActivityService],
 })

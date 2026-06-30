@@ -1,10 +1,10 @@
-import { Controller, Get, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Param, HttpCode, HttpStatus, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard.js'
 import { CurrentUser } from '../../shared/current-user.decorator.js'
 import type { JwtPayload } from '../auth/auth.service.js'
 import { EnrollmentService } from '../enrollment/enrollment.service.js'
 import { CourseService } from '../course/course.service.js'
-import { presentCourse } from '../../shared/presenters.js'
+import { presentCourse, presentEnrollment } from '../../shared/presenters.js'
 
 /** Endpoints scoped to the authenticated user. */
 @Controller('me')
@@ -32,4 +32,19 @@ export class MeController {
 
     return results.filter((c): c is NonNullable<typeof c> => c !== null)
   }
+
+  /**
+   * Self-enroll the current user into a course as a student.
+   * Stage 2 write: persisted in the NEW database via the Strangler repository.
+   */
+  @Post('courses/:courseId/enroll')
+  @HttpCode(HttpStatus.CREATED)
+  async enroll(@CurrentUser() user: JwtPayload, @Param('courseId') courseId: string) {
+    const enrollment = await this.enrollments.enroll(courseId, {
+      userId: user.sub,
+      role: 'student',
+    })
+    return presentEnrollment(enrollment)
+  }
 }
+

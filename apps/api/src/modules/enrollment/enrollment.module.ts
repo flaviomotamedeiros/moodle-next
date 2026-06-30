@@ -1,14 +1,20 @@
 import { Module } from '@nestjs/common'
 import { EnrollmentController } from './enrollment.controller.js'
 import { EnrollmentService } from './enrollment.service.js'
-import { LegacyEnrollmentRepository } from '../../infrastructure/legacy/repositories/legacy-enrollment.repository.js'
+import { PrismaEnrollmentRepository } from '../../infrastructure/database/prisma-enrollment.repository.js'
+import { StranglerEnrollmentRepository } from '../../infrastructure/legacy/strangler-enrollment.repository.js'
 
-/** Stage 1 (read-only): reads 100% from the legacy database via the ACL. */
+/**
+ * Stage 2 (coexist): the Enrollment module now uses the Strangler repository —
+ * reads merge new DB + legacy, writes go to the new DB (Prisma/SQLite).
+ */
 @Module({
   controllers: [EnrollmentController],
   providers: [
     EnrollmentService,
-    { provide: 'ENROLLMENT_REPOSITORY', useExisting: LegacyEnrollmentRepository },
+    PrismaEnrollmentRepository,
+    StranglerEnrollmentRepository,
+    { provide: 'ENROLLMENT_REPOSITORY', useExisting: StranglerEnrollmentRepository },
   ],
   exports: [EnrollmentService],
 })

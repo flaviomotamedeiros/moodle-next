@@ -2,14 +2,19 @@ import { Injectable } from '@nestjs/common'
 import { type EnrollmentRepository, Enrollment, type EnrollmentRole } from '@moodle-next/core'
 import { MigrationFlagsService } from './migration-flags.service.js'
 import { LegacyEnrollmentRepository } from './repositories/legacy-enrollment.repository.js'
-import { InMemoryEnrollmentRepository } from '../../modules/enrollment/in-memory-enrollment.repository.js'
+import { PrismaEnrollmentRepository } from '../database/prisma-enrollment.repository.js'
 
+/**
+ * Coexist-stage repository for Enrollment.
+ * Reads: new DB first, falls back to legacy (merge). Writes: always to the new DB.
+ * The legacy MariaDB stays read-only.
+ */
 @Injectable()
 export class StranglerEnrollmentRepository implements EnrollmentRepository {
   constructor(
     private readonly flags: MigrationFlagsService,
     private readonly legacy: LegacyEnrollmentRepository,
-    private readonly next: InMemoryEnrollmentRepository,
+    private readonly next: PrismaEnrollmentRepository,
   ) {}
 
   async findById(id: string): Promise<Enrollment | null> {

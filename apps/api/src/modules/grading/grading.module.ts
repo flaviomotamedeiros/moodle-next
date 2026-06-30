@@ -1,14 +1,17 @@
 import { Module } from '@nestjs/common'
 import { GradingController } from './grading.controller.js'
 import { GradingService } from './grading.service.js'
-import { LegacyGradeRepository } from '../../infrastructure/legacy/repositories/legacy-grade.repository.js'
+import { PrismaGradeRepository } from '../../infrastructure/database/prisma-grade.repository.js'
+import { StranglerGradeRepository } from '../../infrastructure/legacy/strangler-grade.repository.js'
 
-/** Stage 1 (read-only): reads 100% from the legacy database via the ACL. */
+/** Stage 2 (coexist): reads merge new DB + legacy; writes go to the new DB. */
 @Module({
   controllers: [GradingController],
   providers: [
     GradingService,
-    { provide: 'GRADE_REPOSITORY', useExisting: LegacyGradeRepository },
+    PrismaGradeRepository,
+    StranglerGradeRepository,
+    { provide: 'GRADE_REPOSITORY', useExisting: StranglerGradeRepository },
   ],
   exports: [GradingService],
 })

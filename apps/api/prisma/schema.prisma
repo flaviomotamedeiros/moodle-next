@@ -1,0 +1,62 @@
+// New-system database (Stage 2 coexist target).
+// SQLite for the prototype; Postgres is the production target (see ADR 001).
+datasource db {
+  provider = "sqlite"
+  url      = env("PRISMA_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/// Enrollments created by the NEW system. Legacy enrollments stay in MariaDB
+/// and are merged at read time by the StranglerEnrollmentRepository.
+model Enrollment {
+  id         String    @id
+  userId     String
+  courseId   String
+  role       String
+  status     String
+  enrolledAt DateTime
+  deletedAt  DateTime?
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+/// Courses created by the NEW system. Merged with legacy at read time.
+model Course {
+  id         String  @id
+  fullName   String
+  shortName  String
+  categoryId String
+  visible    Boolean @default(true)
+
+  @@map("courses")
+}
+
+/// Grades assigned by the NEW system. Merged with legacy at read time.
+model Grade {
+  id                  String  @id
+  enrollmentId        String
+  activityId          String
+  value               Float?
+  maxValue            Float
+  feedback            String?
+  gradingStrategyType String
+
+  @@unique([enrollmentId, activityId])
+  @@map("grades")
+}
+
+/// Activity definitions created by the NEW system. Merged with legacy at read time.
+model Activity {
+  id        String  @id
+  courseId  String
+  sectionId String
+  pluginId  String
+  name      String
+  visible   Boolean @default(true)
+
+  @@map("activities")
+}

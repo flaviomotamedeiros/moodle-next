@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { type CourseRepository, type Course } from '@moodle-next/core'
 import { MigrationFlagsService } from './migration-flags.service.js'
 import { LegacyCourseRepository } from './repositories/legacy-course.repository.js'
-import { InMemoryCourseRepository } from '../../modules/course/in-memory-course.repository.js'
+import { PrismaCourseRepository } from '../database/prisma-course.repository.js'
 
 /**
  * Strangler Fig repository for the Course context.
@@ -19,7 +19,7 @@ export class StranglerCourseRepository implements CourseRepository {
   constructor(
     private readonly flags: MigrationFlagsService,
     private readonly legacy: LegacyCourseRepository,
-    private readonly next: InMemoryCourseRepository,
+    private readonly next: PrismaCourseRepository,
   ) {}
 
   async findById(id: string): Promise<Course | null> {
